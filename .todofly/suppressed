@@ -1,0 +1,4 @@
+# todofly suppressed TODOs — managed automatically by 'todofly ignore'
+TODO.md:' anywhere in a line and todofly will pick it up.
+TODO.md:add dark mode support
+TODO.md:write tests for the auth module

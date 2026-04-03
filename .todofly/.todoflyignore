@@ -1,0 +1,42 @@
+# todofly ignore patterns — glob patterns for files and directories to skip.
+# Lines starting with '#' are comments. One pattern per line.
+# Directory patterns (ending with /) skip the whole directory.
+# File patterns (e.g. *.lock) skip matching files anywhere in the tree.
+
+# Virtual environments
+.venv/
+venv/
+env/
+.env/
+
+# Python cache / tooling
+__pycache__/
+*.pyc
+.tox/
+.mypy_cache/
+.pytest_cache/
+*.egg-info/
+
+# Build output
+dist/
+build/
+
+# Node
+node_modules/
+
+# Lock files (auto-generated)
+*.lock
+package-lock.json
+yarn.lock
+poetry.lock
+
+# Minified assets
+*.min.js
+*.min.css
+*.map
+
+# Config/dotfiles unlikely to contain meaningful TODOs
+.gitignore
+.gitattributes
+.editorconfig
+
