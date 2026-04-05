@@ -84,9 +84,9 @@ After each change to mcpster, run `npm run build` — the linked consumer will p
 - [x] `examples/minimal/` runs against a real MCP client (e.g. Claude Desktop or `claude mcp add`)
 - [X] All three primitives (tool, resource, prompt) have passing unit tests
 - [X] HTTP/SSE transport adapter implemented (`src/transport/http.ts`) — 13/13 tests passing
-- [ ] URI template extraction handles multi-param URIs correctly (`a://{x}/{y}`)
-- [ ] Errors thrown in handlers produce MCP-compliant error responses, not uncaught exceptions
-- [ ] `start()` keeps process alive under stdio — does not exit immediately
-- [ ] HTTP transport: graceful shutdown contract defined and implemented
+- [X] URI template extraction handles multi-param URIs correctly (`a://{x}/{y}`)
+- [X] Errors thrown in handlers produce MCP-compliant error responses, not uncaught exceptions
+- [X] `start()` keeps process alive under stdio — does not exit immediately
+- [X] HTTP transport: graceful shutdown contract defined and implemented
 
 ---
