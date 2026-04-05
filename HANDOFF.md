@@ -75,6 +75,7 @@ After each change to mcpster, run `npm run build` — the linked consumer will p
 ## Next Steps
 
 - TODO [HUMAN]: Review the public HTTP transport API shape (`HttpConfig` fields, error behaviour on port conflict, graceful shutdown contract)
+- TODO [HUMAN]: Review the wrapped error response shapes in `resource.ts` and `prompt.ts` — confirm that returning the error message as `contents[0].text` (resources) and as a `user` message (prompts) is appropriate for the MCP contracts — Due: before merge
 - TODO [BOT]: Add graceful shutdown support (expose a `stop()` or return a closer function from `connectHttp`) — after HUMAN review
 - TODO [BOT]: Update `README.md` with HTTP transport usage example — after HUMAN review
 
