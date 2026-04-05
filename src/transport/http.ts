@@ -3,7 +3,7 @@ import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { HttpConfig } from '../types.js'
 
-export async function connectHttp(server: McpServer, config?: HttpConfig): Promise<void> {
+export async function connectHttp(server: McpServer, config?: HttpConfig): Promise<() => Promise<void>> {
   const port = config?.port ?? 3000
   const path = config?.path ?? '/mcp'
 
@@ -22,5 +22,9 @@ export async function connectHttp(server: McpServer, config?: HttpConfig): Promi
   await new Promise<void>((resolve, reject) => {
     httpServer.once('error', reject)
     httpServer.listen(port, () => resolve())
+  })
+
+  return () => new Promise<void>((resolve, reject) => {
+    httpServer.close((err) => (err ? reject(err) : resolve()))
   })
 }

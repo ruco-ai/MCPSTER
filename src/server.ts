@@ -12,6 +12,7 @@ class McpsterServerImpl implements McpsterServer {
   readonly sdk: McpServer
   private readonly config: ServerConfig
   private readonly toolNames: string[] = []
+  private _stop: (() => Promise<void>) | undefined
 
   constructor(config: ServerConfig) {
     this.config = config
@@ -44,10 +45,14 @@ class McpsterServerImpl implements McpsterServer {
 
   async start(): Promise<void> {
     if (this.config.transport === 'http') {
-      await connectHttp(this.sdk, this.config.http)
+      this._stop = await connectHttp(this.sdk, this.config.http)
     } else {
-      await connectStdio(this.sdk)
+      this._stop = await connectStdio(this.sdk)
     }
+  }
+
+  async stop(): Promise<void> {
+    await this._stop?.()
   }
 }
 

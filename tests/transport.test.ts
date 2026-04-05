@@ -20,6 +20,7 @@ vi.mock('node:http', () => {
       if (event !== 'error') cb()
       return this
     }),
+    close: vi.fn().mockImplementation((cb: () => void) => cb()),
   }
   return { createServer: vi.fn().mockReturnValue(fakeServer) }
 })
@@ -31,7 +32,6 @@ describe('connectHttp', () => {
 
   it('connects to server with default port and path', async () => {
     const { connectHttp } = await import('../src/transport/http.js')
-    const { StreamableHTTPServerTransport } = await import('@modelcontextprotocol/sdk/server/streamableHttp.js')
     const mockServer = { connect: vi.fn().mockResolvedValue(undefined) }
 
     await connectHttp(mockServer as unknown as McpServer)
@@ -48,6 +48,18 @@ describe('connectHttp', () => {
 
     const fakeServer = (nodeCreateServer as ReturnType<typeof vi.fn>).mock.results[0]?.value
     expect(fakeServer.listen).toHaveBeenCalledWith(4000, expect.any(Function))
+  })
+
+  it('returns a stop function that closes the HTTP server', async () => {
+    const { connectHttp } = await import('../src/transport/http.js')
+    const { createServer: nodeCreateServer } = await import('node:http')
+    const mockServer = { connect: vi.fn().mockResolvedValue(undefined) }
+
+    const stop = await connectHttp(mockServer as unknown as McpServer)
+    await stop()
+
+    const fakeServer = (nodeCreateServer as ReturnType<typeof vi.fn>).mock.results[0]?.value
+    expect(fakeServer.close).toHaveBeenCalledOnce()
   })
 })
 
@@ -82,5 +94,19 @@ describe('createServer transport selection', () => {
 
     const arg = (sdk.connect as ReturnType<typeof vi.fn>).mock.calls[0][0]
     expect(arg).toBeInstanceOf(StreamableHTTPServerTransport)
+  })
+
+  it('stop() closes the HTTP server after start()', async () => {
+    const { createServer: nodeCreateServer } = await import('node:http')
+    const { createServer } = await import('../src/server.js')
+    const server = createServer({ name: 'test', version: '1.0.0', transport: 'http', http: { port: 3002 } })
+    const sdk: McpServer = (server as unknown as { sdk: McpServer }).sdk
+    vi.spyOn(sdk, 'connect').mockResolvedValue(undefined)
+
+    await server.start()
+    await server.stop()
+
+    const fakeServer = (nodeCreateServer as ReturnType<typeof vi.fn>).mock.results[0]?.value
+    expect(fakeServer.close).toHaveBeenCalledOnce()
   })
 })

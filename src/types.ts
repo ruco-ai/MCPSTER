@@ -45,4 +45,5 @@ export interface McpsterServer {
   definePrompt(def: PromptDefinition): McpsterServer
   setup(options?: SetupOptions): Promise<McpsterServer>
   start(): Promise<void>
+  stop(): Promise<void>
 }
