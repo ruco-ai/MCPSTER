@@ -1,14 +1,14 @@
 # Handoff: mcpster
 
-**Date:** 2026-04-05
+**Date:** 2026-04-06
 **Author:** ruco
-**Version:** v1
+**Version:** v2
 
 ---
 
 ## What Was Built
 
-> mcpster v1 — a TypeScript SDK for building MCP servers with a fluent, chainable API over `@modelcontextprotocol/sdk`. Covers the full local stdio path: createServer, defineTool, defineResource, definePrompt, and start().
+> mcpster v2 — a TypeScript SDK for building MCP servers with a fluent, chainable API over `@modelcontextprotocol/sdk`. Covers the full local stdio path and HTTP/SSE transport: createServer, defineTool, defineResource, definePrompt, start(), and connectHttp().
 
 ---
 
@@ -17,12 +17,10 @@
 - `CODING-NOTES.md` — implementation decisions: URI template parsing, error handling convention, chainable API pattern, async start(), testing strategy, and ordered file-creation checklist
 - `README.md` — user-facing documentation
 
-No source code has been written yet. This handoff covers the planning phase.
-
 ## How to Run
 
 ```bash
-# Install dependencies (once src exists)
+# Install dependencies
 npm install
 
 # Run in development
@@ -58,45 +56,37 @@ After each change to mcpster, run `npm run build` — the linked consumer will p
 
 | Item | What was done | What it should become |
 |------|--------------|----------------------|
-| No source files | Only spec and structure docs written | Implement per the order in CODING-NOTES.md |
-| Transport | stdio only planned | HTTP/SSE transport in v2 |
+| Transport | stdio + HTTP/SSE implemented | Graceful shutdown contract pending human review |
 | CLI scaffolder | Deferred (`mcpster init`) | v2 or later |
 | Deploy adapters | Not in scope | v3 (Railway, Fly, Cloudflare Workers) |
 | Reference implementations | `examples/minimal/` (hello-mcp) exists and runs | — |
 | `clone` command | Spec'd, not implemented | Human-access complement to MCP resource reads |
+| HTTP graceful shutdown | Not yet implemented | Expose `stop()` or closer from `connectHttp` after shutdown contract approved |
 
 ## Known Issues
 
 | Issue | Severity | Notes |
 |-------|----------|-------|
-| No implementation exists | High | All deliverables so far are planning docs |
 | SDK resource template handling | Medium | Static vs templated URIs need conditional routing — see CODING-NOTES.md URI section |
 | `start()` never-resolving promise | Low | Expected behavior, but callers need to know — document clearly |
+| HTTP port conflict behavior | Low | Error behavior on port conflict not yet defined or tested |
+| No HTTP graceful shutdown | Low | `connectHttp` has no `stop()` — pending human review of shutdown contract |
 
 ## Next Steps
 
-- TODO [BOT]: Scaffold `package.json` and `tsconfig.json` per STRUCTURE.md dependencies
-- TODO [BOT]: Write `src/types.ts` — all interfaces, no logic
-- TODO [BOT]: Write `src/server.ts` — `createServer()` + `McpsterServer` class
-- TODO [BOT]: Write `src/transport/stdio.ts` — thin SDK wrapper
-- TODO [BOT]: Write `src/tool.ts` — `defineTool` with Zod validation
-- TODO [BOT]: Write `src/resource.ts` — `defineResource` with URI template parsing
-- TODO [BOT]: Write `src/prompt.ts` — `definePrompt`
-- TODO [BOT]: Write `src/index.ts` — re-exports only
-- TODO [BOT]: Write `examples/minimal/` — smoke-test reference
-- TODO [BOT]: Write unit tests per primitive (tool, resource, prompt, server)
-- DONE[alexruco@ruco-todo:#2]: Decide versioning strategy for hosted servers (semver vs URL-versioned) — open question from SPEC.md
-- DONE[alexruco@ruco-todo:#3]: Validate that `@modelcontextprotocol/sdk` in-memory transport works for integration tests before committing to the testing strategy
-- DONE[alexruco@ruco-todo:#4]: Reference implementation scope resolved — hello-mcp (`examples/minimal/`) is the standard reference
+- TODO [HUMAN]: Review the public HTTP transport API shape (`HttpConfig` fields, error behaviour on port conflict, graceful shutdown contract)
+- TODO [BOT]: Add graceful shutdown support (expose a `stop()` or return a closer function from `connectHttp`) — after HUMAN review
+- TODO [BOT]: Update `README.md` with HTTP transport usage example — after HUMAN review
 
 ## Review Checklist
 
 - [X] `npm install` resolves without conflicts (`@modelcontextprotocol/sdk` + `zod` + `typescript` + `vitest`)
 - [x] `examples/minimal/` runs against a real MCP client (e.g. Claude Desktop or `claude mcp add`)
-- [ ] All three primitives (tool, resource, prompt) have passing unit tests
+- [X] All three primitives (tool, resource, prompt) have passing unit tests
+- [X] HTTP/SSE transport adapter implemented (`src/transport/http.ts`) — 13/13 tests passing
 - [ ] URI template extraction handles multi-param URIs correctly (`a://{x}/{y}`)
 - [ ] Errors thrown in handlers produce MCP-compliant error responses, not uncaught exceptions
 - [ ] `start()` keeps process alive under stdio — does not exit immediately
+- [ ] HTTP transport: graceful shutdown contract defined and implemented
 
 ---
-

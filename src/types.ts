@@ -1,9 +1,16 @@
 import type { z, ZodSchema } from 'zod'
 
+export interface HttpConfig {
+  port?: number // defaults to 3000
+  path?: string // defaults to '/mcp'
+}
+
 export interface ServerConfig {
   name: string
   version: string
   scope?: string // defaults to process.cwd()
+  transport?: 'stdio' | 'http'
+  http?: HttpConfig
 }
 
 export interface ToolDefinition<T extends ZodSchema = ZodSchema> {
