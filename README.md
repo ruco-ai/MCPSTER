@@ -17,6 +17,7 @@ mcpster is an agnostic TypeScript SDK for building Model Context Protocol (MCP) 
 - URI template parameter extraction for resources (`templates://{name}`)
 - Automatic error wrapping — handlers throw, mcpster returns MCP-compliant error responses
 - Scope-aware server naming (project, user, or public scope)
+- stdio and HTTP/SSE transports — switch with a single config field
 - Designed for progressive deployment: local stdio → remote HTTP/SSE → hosted → npm package
 
 ## Installation
@@ -26,6 +27,8 @@ npm install mcpster
 ```
 
 ## Usage
+
+### stdio (default)
 
 ```typescript
 import { createServer } from 'mcpster'
@@ -56,6 +59,21 @@ Register the server per-project:
 claude mcp add my-server -- npx mcpster start
 ```
 
+### HTTP/SSE transport
+
+```typescript
+import { createServer } from 'mcpster'
+
+createServer({
+  name: 'my-server',
+  version: '1.0.0',
+  transport: 'http',
+  http: { port: 3000, path: '/mcp' },
+})
+  .defineTool({ /* ... */ })
+  .start() // listens on http://localhost:3000/mcp
+```
+
 ## Configuration
 
 | Option | Default | Description |
@@ -63,6 +81,9 @@ claude mcp add my-server -- npx mcpster start
 | `name` | required | Server name, used for MCP registration |
 | `version` | required | Semver string |
 | `scope` | `process.cwd()` | Project root; determines scope for naming and resource resolution |
+| `transport` | `'stdio'` | Transport to use: `'stdio'` or `'http'` |
+| `http.port` | `3000` | Port to listen on (HTTP transport only) |
+| `http.path` | `'/mcp'` | Request path to handle (HTTP transport only) |
 
 ## Project Structure
 
@@ -75,13 +96,15 @@ mcpster/
 │   ├── resource.ts           # defineResource — URI template matching + resolver
 │   ├── prompt.ts             # definePrompt — prompt template registration
 │   ├── transport/
-│   │   └── stdio.ts          # stdio transport adapter
+│   │   ├── stdio.ts          # stdio transport adapter
+│   │   └── http.ts           # HTTP/SSE transport adapter
 │   └── types.ts              # Shared TypeScript types and interfaces
 ├── tests/
 │   ├── server.test.ts
 │   ├── tool.test.ts
 │   ├── resource.test.ts
-│   └── prompt.test.ts
+│   ├── prompt.test.ts
+│   └── transport.test.ts
 ├── examples/
 │   └── minimal/              # hello-mcp — tool + resource + prompt, runnable reference
 ├── package.json
@@ -97,4 +120,3 @@ See [DEV.md](DEV.md) for development setup and contribution guidelines.
 MIT
 
 ---
-

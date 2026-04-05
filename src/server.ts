@@ -1,6 +1,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import { ZodSchema } from 'zod'
 import { connectStdio } from './transport/stdio.js'
+import { connectHttp } from './transport/http.js'
 import { registerTool } from './tool.js'
 import { registerResource } from './resource.js'
 import { registerPrompt } from './prompt.js'
@@ -42,7 +43,11 @@ class McpsterServerImpl implements McpsterServer {
   }
 
   async start(): Promise<void> {
-    await connectStdio(this.sdk)
+    if (this.config.transport === 'http') {
+      await connectHttp(this.sdk, this.config.http)
+    } else {
+      await connectStdio(this.sdk)
+    }
   }
 }
 
