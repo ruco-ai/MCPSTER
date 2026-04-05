@@ -13,6 +13,8 @@ vi.mock('@modelcontextprotocol/sdk/server/stdio.js', () => {
   return { StdioServerTransport }
 })
 
+let capturedRequestHandler: ((req: unknown, res: unknown) => Promise<void>) | undefined
+
 vi.mock('node:http', () => {
   const fakeServer = {
     listen: vi.fn().mockImplementation((_port: number, cb: () => void) => cb()),
@@ -22,7 +24,12 @@ vi.mock('node:http', () => {
     }),
     close: vi.fn().mockImplementation((cb: () => void) => cb()),
   }
-  return { createServer: vi.fn().mockReturnValue(fakeServer) }
+  return {
+    createServer: vi.fn().mockImplementation((handler: (req: unknown, res: unknown) => Promise<void>) => {
+      capturedRequestHandler = handler
+      return fakeServer
+    }),
+  }
 })
 
 describe('connectHttp', () => {
@@ -30,13 +37,31 @@ describe('connectHttp', () => {
     vi.clearAllMocks()
   })
 
-  it('connects to server with default port and path', async () => {
+  it('listens on default port 3000', async () => {
     const { connectHttp } = await import('../src/transport/http.js')
+    const { createServer: nodeCreateServer } = await import('node:http')
     const mockServer = { connect: vi.fn().mockResolvedValue(undefined) }
 
     await connectHttp(mockServer as unknown as McpServer)
 
+    const fakeServer = (nodeCreateServer as ReturnType<typeof vi.fn>).mock.results[0]?.value
+    expect(fakeServer.listen).toHaveBeenCalledWith(3000, expect.any(Function))
+  })
+
+  it('connects server to a new transport per request', async () => {
+    const { connectHttp } = await import('../src/transport/http.js')
+    const { StreamableHTTPServerTransport } = await import('@modelcontextprotocol/sdk/server/streamableHttp.js')
+    const mockServer = { connect: vi.fn().mockResolvedValue(undefined) }
+
+    await connectHttp(mockServer as unknown as McpServer)
+
+    // Simulate a request to /mcp
+    const fakeReq = { url: '/mcp', on: vi.fn() }
+    const fakeRes = { writeHead: vi.fn(), end: vi.fn(), headersSent: false, on: vi.fn() }
+    await capturedRequestHandler!(fakeReq, fakeRes)
+
     expect(mockServer.connect).toHaveBeenCalledOnce()
+    expect(mockServer.connect).toHaveBeenCalledWith(expect.any(StreamableHTTPServerTransport))
   })
 
   it('listens on custom port', async () => {
@@ -91,6 +116,11 @@ describe('createServer transport selection', () => {
     vi.spyOn(sdk, 'connect').mockResolvedValue(undefined)
 
     await server.start()
+
+    // connect() is called per request — simulate one to verify the transport type
+    const fakeReq = { url: '/mcp', on: vi.fn() }
+    const fakeRes = { writeHead: vi.fn(), end: vi.fn(), headersSent: false, on: vi.fn() }
+    await capturedRequestHandler!(fakeReq, fakeRes)
 
     const arg = (sdk.connect as ReturnType<typeof vi.fn>).mock.calls[0][0]
     expect(arg).toBeInstanceOf(StreamableHTTPServerTransport)

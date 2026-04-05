@@ -3,6 +3,7 @@ import type { z, ZodSchema } from 'zod'
 export interface HttpConfig {
   port?: number // defaults to 3000
   path?: string // defaults to '/mcp'
+  enableJsonResponse?: boolean
 }
 
 export interface ServerConfig {

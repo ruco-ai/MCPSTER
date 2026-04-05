@@ -1,8 +1,15 @@
 import type { z, ZodSchema } from 'zod';
+export interface HttpConfig {
+    port?: number;
+    path?: string;
+    enableJsonResponse?: boolean;
+}
 export interface ServerConfig {
     name: string;
     version: string;
     scope?: string;
+    transport?: 'stdio' | 'http';
+    http?: HttpConfig;
 }
 export interface ToolDefinition<T extends ZodSchema = ZodSchema> {
     name: string;
@@ -31,4 +38,5 @@ export interface McpsterServer {
     definePrompt(def: PromptDefinition): McpsterServer;
     setup(options?: SetupOptions): Promise<McpsterServer>;
     start(): Promise<void>;
+    stop(): Promise<void>;
 }

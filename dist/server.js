@@ -1,5 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { connectStdio } from './transport/stdio.js';
+import { connectHttp } from './transport/http.js';
 import { registerTool } from './tool.js';
 import { registerResource } from './resource.js';
 import { registerPrompt } from './prompt.js';
@@ -8,6 +9,7 @@ class McpsterServerImpl {
     sdk;
     config;
     toolNames = [];
+    _stop;
     constructor(config) {
         this.config = config;
         this.sdk = new McpServer({
@@ -33,7 +35,15 @@ class McpsterServerImpl {
         return this;
     }
     async start() {
-        await connectStdio(this.sdk);
+        if (this.config.transport === 'http') {
+            this._stop = await connectHttp(this.sdk, this.config.http);
+        }
+        else {
+            this._stop = await connectStdio(this.sdk);
+        }
+    }
+    async stop() {
+        await this._stop?.();
     }
 }
 export function createServer(config) {
