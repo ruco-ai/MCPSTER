@@ -5,8 +5,8 @@ export function registerPrompt(sdk: McpServer, def: PromptDefinition): void {
   sdk.registerPrompt(
     def.name,
     { description: def.description },
-    async () => {
-      const text = await def.handler({})
+    async (args) => {
+      const text = await def.handler(args as Record<string, string>)
       return {
         messages: [{ role: 'user', content: { type: 'text', text } }],
       }

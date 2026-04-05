@@ -4,12 +4,16 @@ import { connectStdio } from './transport/stdio.js'
 import { registerTool } from './tool.js'
 import { registerResource } from './resource.js'
 import { registerPrompt } from './prompt.js'
-import type { ServerConfig, McpsterServer, ToolDefinition, ResourceDefinition, PromptDefinition } from './types.js'
+import { applySetup } from './setup.js'
+import type { ServerConfig, McpsterServer, ToolDefinition, ResourceDefinition, PromptDefinition, SetupOptions } from './types.js'
 
 class McpsterServerImpl implements McpsterServer {
   readonly sdk: McpServer
+  private readonly config: ServerConfig
+  private readonly toolNames: string[] = []
 
   constructor(config: ServerConfig) {
+    this.config = config
     this.sdk = new McpServer({
       name: config.name,
       version: config.version,
@@ -18,6 +22,7 @@ class McpsterServerImpl implements McpsterServer {
 
   defineTool<T extends ZodSchema>(def: ToolDefinition<T>): McpsterServer {
     registerTool(this.sdk, def)
+    this.toolNames.push(def.name)
     return this
   }
 
@@ -28,6 +33,11 @@ class McpsterServerImpl implements McpsterServer {
 
   definePrompt(def: PromptDefinition): McpsterServer {
     registerPrompt(this.sdk, def)
+    return this
+  }
+
+  async setup(options?: SetupOptions): Promise<McpsterServer> {
+    applySetup(this.config.name, this.toolNames, options)
     return this
   }
 

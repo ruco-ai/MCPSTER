@@ -25,9 +25,17 @@ export interface PromptDefinition {
   handler: (args: Record<string, string>) => Promise<string>
 }
 
+export type PermissionMode = 'permissive' | 'restrictive'
+
+export interface SetupOptions {
+  permissions?: PermissionMode
+  projectPath?: string // defaults to process.cwd()
+}
+
 export interface McpsterServer {
   defineTool<T extends ZodSchema>(def: ToolDefinition<T>): McpsterServer
   defineResource(def: ResourceDefinition): McpsterServer
   definePrompt(def: PromptDefinition): McpsterServer
+  setup(options?: SetupOptions): Promise<McpsterServer>
   start(): Promise<void>
 }

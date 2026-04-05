@@ -1,28 +1,22 @@
-# Spec: {{PROJECT_NAME}}
+# Specification: {{PROJECT_NAME}}
 
 **Date:** {{DATE}}
 **Author:** {{AUTHOR}}
+**Status:** Draft
 
 ---
 
 <!--
 INSTRUCTIONS FOR THE MODEL:
 Your output must be this document with every section filled in. Do not write prose, summaries, or commentary outside the template structure.
-The prompt below describes a project, feature, or system to be built from scratch. Use it to populate each section.
-- Overview: a short, precise description of what will be built and why.
-- User Stories: written as "As a <role>, I want <action>, so that <benefit>." Cover the main use cases.
-- Functional Requirements: numbered, testable, unambiguous. Each maps to something the system must do.
-- Non-Functional Requirements: performance, security, reliability, UX expectations.
-- Out of Scope: explicit exclusions to prevent scope creep.
-- Architecture: the key components, their responsibilities, and how they connect. Include a diagram if helpful.
-- Data Model: the core entities, their fields, and relationships.
-- API / Interface: endpoints, commands, or UI surfaces exposed to users or other systems.
-- Tech Stack: languages, frameworks, libraries, and tools chosen (with brief rationale if non-obvious).
-- Success Criteria: measurable outcomes that confirm the spec is implemented.
-- Open Questions: unresolved decisions that must be answered before or during implementation.
-- Fill every table; add or remove rows as needed.
+The prompt below is a description of a feature, system, or change to be specified. Use it to populate each section.
+- Background & Motivation: explain the why, not restate the prompt.
+- Goals and Non-Goals: explicit and derived from the prompt.
+- Detailed Design: cover data model, interface, and behavior with real content.
+- Fill all tables; add rows as needed.
+- For genuinely unknown information, write "TBD — [what needs to be decided]".
 - Remove HTML comments from the final output.
-- Do not leave placeholder text, generic labels, or empty cells.
+- Do not leave generic placeholder text or empty cells.
 - Do not add, remove, or reorder sections.
 -->
 
@@ -32,92 +26,66 @@ The prompt below describes a project, feature, or system to be built from scratc
 
 ---
 
-## User Stories
+## Background & Motivation
 
-<!-- As a <role>, I want <action>, so that <benefit>. -->
+<!-- Why is this needed? What problem does it solve? What happens without it? -->
 
-- As a , I want , so that .
-- As a , I want , so that .
-- As a , I want , so that .
-
-## Functional Requirements
-
-<!-- Numbered, testable, unambiguous. -->
-
-1.
-2.
-3.
-
-## Non-Functional Requirements
-
-<!-- Performance, security, reliability, UX expectations. -->
-
-| Category | Requirement |
-|----------|-------------|
-| Performance |  |
-| Security |  |
-| Reliability |  |
-| UX |  |
-
-## Out of Scope
-
-<!-- Explicit exclusions — prevents scope creep. -->
+## Goals
 
 -
 -
 
-## Architecture
+## Non-Goals
 
-<!-- Key components, responsibilities, and how they connect. -->
+-
+-
 
-### Components
+## Detailed Design
 
-| Component | Responsibility |
-|-----------|---------------|
-|           |               |
+### Data Model
 
-### Data Flow
+```
+<!-- Describe entities and fields relevant to this spec -->
+```
 
-<!-- Describe the main data flow or include an ASCII diagram. -->
+### API / Interface
 
-## Data Model
+```
+<!-- Function signatures, CLI flags, REST endpoints, or event schemas -->
+```
 
-<!-- Core entities, fields, and relationships. -->
+### Behavior
 
-### Entities
+<!-- Step-by-step description of what the system does, from input to output -->
 
-| Entity | Fields | Notes |
-|--------|--------|-------|
-|        |        |       |
+## Error Handling
 
-## API / Interface
+<!-- How does the system behave when things go wrong? -->
 
-<!-- Endpoints, commands, or UI surfaces exposed to users or other systems. -->
+| Error Case | Behavior | User-Facing Message |
+|------------|----------|---------------------|
+|            |          |                     |
 
-| Method / Command | Description | Input | Output |
-|-----------------|-------------|-------|--------|
-|                 |             |       |        |
+## Security Considerations
 
-## Tech Stack
+<!-- Authentication, authorization, input validation, data privacy -->
 
-| Layer | Choice | Rationale |
-|-------|--------|-----------|
-|       |        |           |
+## Testing Plan
 
-## Success Criteria
-
-<!-- Measurable outcomes that confirm the spec is fully implemented. -->
-
-| Criterion | Measurement | Target |
-|-----------|-------------|--------|
-|           |             |        |
+- [ ] TODO:
+- [ ] TODO:
 
 ## Open Questions
 
-<!-- Unresolved decisions that must be answered before or during implementation. -->
+<!-- Unresolved decisions that need answers before or during implementation -->
 
-- [ ]
-- [ ]
+- [ ] TODO:
+
+## Alternatives Considered
+
+| Alternative | Pros | Cons | Decision |
+|-------------|------|------|----------|
+|             |      |      |          |
 
 ---
 

@@ -2,7 +2,7 @@
 # Lines starting with '#' are comments. One pattern per line.
 # Directory patterns (ending with /) skip the whole directory.
 # File patterns (e.g. *.lock) skip matching files anywhere in the tree.
-
+.navg8/
 # Virtual environments
 .venv/
 venv/

@@ -9,8 +9,15 @@
 INSTRUCTIONS FOR THE MODEL:
 Your output must be this document with every section filled in. Do not write prose, summaries, or commentary outside the template structure.
 The prompt below is the raw input describing a task, feature, or problem. Use it to populate each section.
+
+Rules:
+- Each goal must be tagged [BOT] or [HUMAN]:
+  - [BOT]   — implementable by an AI agent from the spec alone (coding, scaffolding, configuration, tests)
+  - [HUMAN] — requires human judgment, domain decisions, external coordination, creative input, or review
+- Order goals by dependency: a goal that blocks others must appear before them.
+- A [HUMAN] goal in the middle of a sequence signals a mandatory checkpoint before the next [BOT] batch can proceed.
+- Use real descriptions derived from the prompt — not placeholder names like "Goal 1".
 - Problem Statement: what is broken or missing without this mission.
-- Goals: specific, testable — each verifiable at completion.
 - Non-Goals: explicitly out of scope to prevent drift.
 - Success Criteria: how we know the mission is done.
 - Deliverables: concrete outputs.
@@ -34,9 +41,8 @@ The prompt below is the raw input describing a task, feature, or problem. Use it
 
 <!-- Concrete, testable goals. Each should be verifiable at completion. -->
 
-- [ ]
-- [ ]
-- [ ]
+- TODO [BOT]:
+- TODO [HUMAN]:
 
 ## Non-Goals
 

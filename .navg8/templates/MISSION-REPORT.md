@@ -77,8 +77,10 @@ You are given a GitHub issue thread (title, description, and comments) as the pr
 ## Next Steps / Follow-up Actions
 
 <!-- Derive from open items, TODOs, or unresolved points in the issue thread -->
+<!-- Tag each action [BOT] or [HUMAN]: BOT = implementable by an AI agent; HUMAN = requires judgment, coordination, or review -->
 
-- [ ] Action — Owner: — Due:
+- TODO [BOT]: Action — Owner: — Due:
+- TODO [HUMAN]: Action — Owner: — Due:
 
 ---
 
