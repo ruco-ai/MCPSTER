@@ -2,9 +2,15 @@
 
 ## Vision
 
-mcpster is an SDK for building project-scoped MCP servers that expose tool context to Claude and other AI agents.
+mcpster is an agnostic TypeScript SDK for building MCP servers. It removes the boilerplate — stdio transport, JSON-RPC, tool/resource/prompt registration, error handling — so builders focus on what they expose, not how.
 
-The core design principle: a server built with mcpster should start as a local stdio process, become a remotely hosted service, and optionally become a publicly distributed SDK — without rewriting business logic at any stage.
+mcpster has no opinion about what you build with it. It does not presuppose xtage, mdblu, navg8, or any other project.
+
+Two parallel evolution paths, both frictionless:
+
+**Servers built with mcpster** start as local stdio processes, become remotely hosted services, and can be published as standalone npm packages — without rewriting business logic at any stage.
+
+**mcpster itself** starts as a library, and eventually ships a deploy kit for hosting and distributing servers at scale.
 
 ---
 
@@ -20,23 +26,49 @@ Each team reinvents the same plumbing. mcpster eliminates that.
 
 ---
 
+## v1 Decisions
+
+- **Language:** TypeScript only
+- **Transport:** stdio only (HTTP/SSE in v2)
+- **Distribution:** library only — no CLI scaffolder (`mcpster init` deferred)
+- **Primitives:** `defineTool`, `defineResource`, `definePrompt` all included in v1
+- **Foundation:** wraps `@modelcontextprotocol/sdk` — stays spec-compliant, avoids reimplementing the protocol
+
+---
+
 ## Core Abstraction
 
-A mcpster server is a collection of **resources** and **tools** bound to a **scope**.
+An mcpster server is a collection of **resources**, **tools**, and **prompts** bound to a **scope**.
 
 ```typescript
 import { createServer } from 'mcpster'
+import { z } from 'zod'
 
 const server = createServer({
-  name: 'my-project-context',
-  scope: process.cwd(),         // project-scoped by default
+  name: 'my-server',
+  version: '1.0.0',
+  scope: process.cwd(), // project-scoped by default
 })
 
-server.resource('spec', () => readFile('.navg8/context/SPEC.md'))
-server.resource('constraints', () => readFile('.navg8/context/CONSTRAINTS.md'))
-server.tool('forge', (template, vars) => mdforge.fill(template, vars))
+server.defineTool({
+  name: 'get_template',
+  description: 'Retrieve a template by name',
+  schema: z.object({ name: z.string() }),
+  handler: async ({ name }) => { /* ... */ },
+})
 
-server.start()
+server.defineResource({
+  uri: 'templates://{name}',
+  description: 'Template content by name',
+  resolver: async ({ name }) => { /* ... */ },
+})
+
+server.definePrompt({
+  name: 'summarize',
+  handler: async (args) => { /* ... */ },
+})
+
+server.start() // stdio transport
 ```
 
 That is the entire surface for a local server. Everything else is progressive.
@@ -97,24 +129,25 @@ Scope is declared at server creation, not at registration time.
 
 ## Reference Implementations
 
-mcpster ships two reference servers:
+mcpster ships two reference servers drawn from the xtage ecosystem:
 
-**navg8-context-server**
-Exposes `.navg8/context/` docs, mission history, BUILD documents, and project summary to agents working inside a navg8-managed project.
-
-```
-Resources: spec, constraints, risks, personas, build, rebuild_history
-Tools:     get_context(doc), list_context(), get_mission_summary(issue_n)
-```
-
-**mdforge-server**
-Exposes mdforge template processing as MCP tools. Allows agents to forge, fill, and transform markdown documents mid-session without subprocess calls.
+**xtage-server**
+Exposes the xtage knowledge store — insight ingest, query by type/scope/recency, and project context — to Claude instances.
 
 ```
-Tools: forge(template, context), fill(template, vars), list_templates()
+Tools:     push_insight(type, content), curate_insights(scope)
+Resources: insights://{type}/{scope}, context://{project}
 ```
 
-Both are usable independently of each other and of navg8.
+**mdblu-server**
+Exposes the mdblu template registry to Claude instances.
+
+```
+Tools:     get_template(name), list_templates()
+Resources: templates://{name}
+```
+
+Both are usable independently of each other.
 
 ---
 
@@ -156,6 +189,5 @@ Each version is a strict superset of the previous. Code written for v1 runs unmo
 
 ## Open Questions
 
-1. Should project-scope servers auto-register on `mcpster init`, or require an explicit `claude mcp add` call by the user?
-2. How should versioning work for hosted public servers — semver on the npm package, or URL-versioned endpoints?
-3. Should `clone` write to stdout by default (pipeable) or to a file?
+1. **Hosted server versioning:** semver on the npm package (for distributed servers) or URL-versioned endpoints (for hosted servers)? Likely both — npm semver for packages, URL versioning for hosted. To be decided in v2.
+2. **`clone` output:** writes to stdout by default (pipeable), with `--out <file>` flag for file output. Follows Unix conventions.
