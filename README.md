@@ -98,18 +98,91 @@ mcpster/
 │   ├── transport/
 │   │   ├── stdio.ts          # stdio transport adapter
 │   │   └── http.ts           # HTTP/SSE transport adapter
+│   ├── deploy/
+│   │   ├── types.ts          # Shared DeployConfig, DeployResult, DeployAdapter types
+│   │   ├── railway.ts        # Railway adapter (generateManifest, deploy)
+│   │   ├── fly.ts            # Fly.io adapter (generateManifest, generateDockerfile, deploy)
+│   │   ├── cloudflare.ts     # Cloudflare Workers adapter (generateManifest, generateWorkerShim, deploy)
+│   │   └── cli.ts            # mcpster-deploy CLI entry point
 │   └── types.ts              # Shared TypeScript types and interfaces
 ├── tests/
 │   ├── server.test.ts
 │   ├── tool.test.ts
 │   ├── resource.test.ts
 │   ├── prompt.test.ts
-│   └── transport.test.ts
+│   ├── transport.test.ts
+│   └── deploy.test.ts
 ├── examples/
 │   └── minimal/              # hello-mcp — tool + resource + prompt, runnable reference
 ├── package.json
 └── tsconfig.json
 ```
+
+## Deploy (v3)
+
+mcpster ships a deploy kit that pushes your HTTP/SSE server to Railway, Fly.io, or Cloudflare Workers with a single command. The HTTP/SSE transport must already be configured on your server before deploying — the deploy adapters wrap the existing `transport: 'http'` path.
+
+### Prerequisites
+
+| Target | Prerequisite |
+|--------|-------------|
+| Railway | `railway` CLI installed and authenticated (`railway login`) |
+| Fly.io | `flyctl` installed and authenticated (`fly auth login`) |
+| Cloudflare Workers | `wrangler` installed and authenticated (`wrangler login`) |
+
+### Usage
+
+```bash
+# Dry-run: print the generated manifest without deploying
+npx mcpster-deploy --target railway --dry-run
+npx mcpster-deploy --target fly --dry-run
+npx mcpster-deploy --target cloudflare --dry-run
+
+# Deploy
+npx mcpster-deploy --target railway
+npx mcpster-deploy --target fly --region lhr
+npx mcpster-deploy --target cloudflare
+```
+
+All options:
+
+```
+-t, --target <target>    Deploy target (railway | fly | cloudflare)
+-n, --name <name>        Server name (default: read from package.json)
+-v, --version <version>  Server version (default: read from package.json)
+-p, --port <port>        HTTP port (default: 3000)
+-r, --region <region>    Preferred region — Fly.io only (default: iad)
+-d, --dry-run            Print the generated manifest without deploying
+-h, --help               Show help
+```
+
+### Local → Hosted migration path
+
+**Stage 1 — Local stdio** (no infrastructure)
+
+```typescript
+createServer({ name: 'my-server', version: '1.0.0' }).start()
+```
+
+**Stage 2 — Local HTTP/SSE** (same server, different transport)
+
+```typescript
+createServer({
+  name: 'my-server',
+  version: '1.0.0',
+  transport: 'http',
+  http: { port: 3000, path: '/mcp' },
+}).start()
+```
+
+**Stage 3 — Hosted** (one command, no code changes)
+
+```bash
+npx mcpster-deploy --target railway
+# → Deployed to Railway: https://my-server.up.railway.app
+```
+
+Update your agent config from `http://localhost:3000/mcp` to the returned URL. The server code is identical across all three stages.
 
 ## Development
 

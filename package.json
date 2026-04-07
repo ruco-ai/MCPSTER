@@ -11,6 +11,9 @@
       "types": "./dist/index.d.ts"
     }
   },
+  "bin": {
+    "mcpster-deploy": "./dist/deploy/cli.js"
+  },
   "files": ["dist"],
   "scripts": {
     "build": "tsc",
