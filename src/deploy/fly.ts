@@ -1,5 +1,7 @@
 import { execSync } from 'node:child_process'
+import { readdirSync } from 'node:fs'
 import type { DeployConfig, DeployResult } from './types.js'
+
 
 export interface FlyManifest {
   app: string
@@ -40,15 +42,24 @@ export function generateManifest(config: DeployConfig): FlyManifest {
 }
 
 export function generateDockerfile(): string {
-  return [
+  let tgzFiles: string[] = []
+  try {
+    tgzFiles = readdirSync('.').filter((f) => f.endsWith('.tgz'))
+  } catch {
+    // ignore
+  }
+  const lines = [
     'FROM node:20-alpine',
     'WORKDIR /app',
     'COPY package*.json ./',
+    ...(tgzFiles.length > 0 ? [`COPY ${tgzFiles.join(' ')} ./`] : []),
     'RUN npm ci --omit=dev',
     'COPY dist ./dist',
+    'COPY mcpster.config.json ./',
     'EXPOSE 3000',
     'CMD ["node", "dist/index.js"]',
-  ].join('\n')
+  ]
+  return lines.join('\n')
 }
 
 export async function deploy(config: DeployConfig): Promise<DeployResult> {
@@ -57,7 +68,7 @@ export async function deploy(config: DeployConfig): Promise<DeployResult> {
   writeFileSync('fly.toml', toToml(manifest), 'utf8')
   writeFileSync('Dockerfile', generateDockerfile(), 'utf8')
   execSync('fly deploy', { encoding: 'utf8', stdio: 'inherit' })
-  const infoOutput = execSync(`fly info --app ${config.name} --json`, { encoding: 'utf8' })
+  const infoOutput = execSync(`fly status --app ${config.name} --json`, { encoding: 'utf8' })
   const info = JSON.parse(infoOutput) as { Hostname?: string }
   const url = info.Hostname ? `https://${info.Hostname}` : ''
   return { url, target: 'fly', manifest }

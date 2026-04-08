@@ -74,6 +74,12 @@ createServer({
   .start() // listens on http://localhost:3000/mcp
 ```
 
+Register with Claude Code:
+
+```bash
+claude mcp add --transport http my-server http://localhost:3000/mcp
+```
+
 ## Configuration
 
 | Option | Default | Description |
@@ -182,7 +188,13 @@ npx mcpster-deploy --target railway
 # → Deployed to Railway: https://my-server.up.railway.app
 ```
 
-Update your agent config from `http://localhost:3000/mcp` to the returned URL. The server code is identical across all three stages.
+Then connect Claude Code to the deployed server:
+
+```bash
+claude mcp add --transport http my-server https://my-server.up.railway.app/mcp
+```
+
+The server code is identical across all three stages.
 
 ## Development
 
