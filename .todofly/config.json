@@ -1,8 +1,0 @@
-{
-  "repo": "ruco-ai/MCPSTER",
-  "namespace": "ruco-todo",
-  "label": "ruco-todo",
-  "max_issues_per_run": 10,
-  "approval_mode": true,
-  "ignored_dirs": []
-}
