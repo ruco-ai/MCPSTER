@@ -1,6 +1,6 @@
 {
   "name": "mcpster",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "description": "Agnostic TypeScript SDK for building MCP servers",
   "type": "module",
   "main": "./dist/index.js",
@@ -14,7 +14,9 @@
   "bin": {
     "mcpster-deploy": "./dist/deploy/cli.js"
   },
-  "files": ["dist"],
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
@@ -23,9 +25,11 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "latest",
+    "express": "^5",
     "zod": "^3"
   },
   "devDependencies": {
+    "@types/express": "^5.0.6",
     "@types/node": "latest",
     "typescript": "^5",
     "vitest": "latest"

@@ -1,8 +1,11 @@
 import type { z, ZodSchema } from 'zod'
 
 export interface HttpConfig {
-  port?: number // defaults to 3000
-  path?: string // defaults to '/mcp'
+  port?: number      // defaults to 3000
+  path?: string      // defaults to '/mcp'
+  baseUrl?: string   // public URL — required for deployed servers; falls back to BASE_URL env var
+  auth?: boolean     // enable OAuth 2.1 (default: false)
+  clientsFile?: string // path to persist registered OAuth clients — only used when auth is true
   enableJsonResponse?: boolean
 }
 

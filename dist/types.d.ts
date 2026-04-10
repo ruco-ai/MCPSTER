@@ -2,6 +2,9 @@ import type { z, ZodSchema } from 'zod';
 export interface HttpConfig {
     port?: number;
     path?: string;
+    baseUrl?: string;
+    auth?: boolean;
+    clientsFile?: string;
     enableJsonResponse?: boolean;
 }
 export interface ServerConfig {
