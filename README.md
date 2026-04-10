@@ -2,8 +2,6 @@
 
 > A TypeScript SDK for building MCP servers — removes the boilerplate so you focus on what you expose, not how.
 
-**Author:** ruco | **Date:** 2026-04-05
-
 ---
 
 ## Overview
@@ -195,10 +193,6 @@ claude mcp add --transport http my-server https://my-server.up.railway.app/mcp
 ```
 
 The server code is identical across all three stages.
-
-## Development
-
-See [DEV.md](DEV.md) for development setup and contribution guidelines.
 
 ## License
 
