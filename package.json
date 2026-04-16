@@ -19,7 +19,8 @@
     }
   },
   "bin": {
-    "mcpster-deploy": "./dist/deploy/cli.js"
+    "mcpster-deploy": "./dist/deploy/cli.js",
+    "mcpster-memory": "./dist/collective-memory/bin.js"
   },
   "files": [
     "dist"
