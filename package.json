@@ -1,10 +1,17 @@
 {
-  "name": "mcpster",
-  "version": "0.2.1",
+  "name": "@ruco-ai/mcpster",
+  "version": "0.2.5",
   "description": "Agnostic TypeScript SDK for building MCP servers",
   "license": "MIT",
   "author": "ruco",
-  "keywords": ["mcp", "model-context-protocol", "sdk", "typescript", "llm", "ai"],
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "sdk",
+    "typescript",
+    "llm",
+    "ai"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/ruco-ai/mcpster"

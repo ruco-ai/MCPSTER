@@ -48,10 +48,15 @@ function createClientsStore(clientsFile?: string) {
 
   return {
     getClient: (id: string) => clients.get(id) ?? undefined,
-    registerClient: (client: Omit<StoredClient, 'client_id' | 'client_id_issued_at'> & { redirect_uris?: string[] }) => {
+    registerClient: (client: Omit<StoredClient, 'client_id' | 'client_id_issued_at'> & { redirect_uris?: string[]; client_secret?: string; client_secret_expires_at?: number }) => {
+      // Always treat dynamically registered clients as public (no client_secret).
+      // This allows clients like Claude.ai that use PKCE and never send a secret
+      // to complete the token exchange, regardless of what they sent at registration.
+      const { client_secret: _secret, client_secret_expires_at: _exp, ...rest } = client
       const full: StoredClient = {
         redirect_uris: [],
-        ...client,
+        ...rest,
+        token_endpoint_auth_method: 'none',
         client_id: randomUUID(),
         client_id_issued_at: Math.floor(Date.now() / 1000),
       }
@@ -178,6 +183,12 @@ export async function connectHttp(server: McpServer, config?: HttpConfig): Promi
   app.use(express.json())
   app.use(express.urlencoded({ extended: false }))
 
+  // Request logging
+  app.use((req, _res, next) => {
+    console.log(`[mcpster] ${req.method} ${req.path}`, req.body && Object.keys(req.body).length ? JSON.stringify(req.body) : '')
+    next()
+  })
+
   if (authEnabled) {
     if (!config?.clientsFile && !process.env.MCPSTER_CLIENTS_FILE) {
       console.warn(
@@ -203,15 +214,17 @@ export async function connectHttp(server: McpServer, config?: HttpConfig): Promi
     })
 
     // MCP endpoint — protected by bearer token
-    app.all(path, requireBearerAuth({ verifier: provider }), async (req: Request, res: Response) => {
+    // resourceMetadataUrl tells clients where to find OAuth discovery metadata (RFC 9728)
+    const resourceMetadataUrl = new URL('/.well-known/oauth-protected-resource', baseUrl).href
+    app.all(path, requireBearerAuth({ verifier: provider, resourceMetadataUrl }), async (req: Request, res: Response) => {
       const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined, enableJsonResponse: config?.enableJsonResponse })
       try {
         await server.connect(transport)
         await transport.handleRequest(req, res, req.body)
-        res.on('close', () => transport.close())
       } catch {
         if (!res.headersSent) res.status(500).end()
-        transport.close()
+      } finally {
+        await transport.close()
       }
     })
   } else {
@@ -221,10 +234,10 @@ export async function connectHttp(server: McpServer, config?: HttpConfig): Promi
       try {
         await server.connect(transport)
         await transport.handleRequest(req, res, req.body)
-        res.on('close', () => transport.close())
       } catch {
         if (!res.headersSent) res.status(500).end()
-        transport.close()
+      } finally {
+        await transport.close()
       }
     })
   }

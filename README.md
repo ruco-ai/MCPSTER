@@ -15,8 +15,9 @@ mcpster is an agnostic TypeScript SDK for building Model Context Protocol (MCP) 
 - URI template parameter extraction for resources (`templates://{name}`)
 - Automatic error wrapping — handlers throw, mcpster returns MCP-compliant error responses
 - Scope-aware server naming (project, user, or public scope)
-- stdio and HTTP/SSE transports — switch with a single config field
-- Designed for progressive deployment: local stdio → remote HTTP/SSE → hosted → npm package
+- stdio and Streamable HTTP transports — switch with a single config field
+- OAuth 2.1 (PKCE) support for protected remote servers — enable with `auth: true`
+- Designed for progressive deployment: local stdio → remote Streamable HTTP → hosted → npm package
 
 ## Installation
 
@@ -57,7 +58,7 @@ Register the server per-project:
 claude mcp add my-server -- npx mcpster start
 ```
 
-### HTTP/SSE transport
+### Streamable HTTP transport
 
 ```typescript
 import { createServer } from 'mcpster'
@@ -78,6 +79,36 @@ Register with Claude Code:
 claude mcp add --transport http my-server http://localhost:3000/mcp
 ```
 
+### OAuth 2.1 (protected remote server)
+
+Enable `auth: true` to require clients to complete an OAuth 2.1 PKCE flow before accessing the MCP endpoint. Set `baseUrl` to your public server URL so OAuth discovery metadata points to the right place.
+
+```typescript
+createServer({
+  name: 'my-server',
+  version: '1.0.0',
+  transport: 'http',
+  http: {
+    port: 3000,
+    path: '/mcp',
+    auth: true,
+    baseUrl: 'https://my-server.example.com',
+  },
+}).start()
+```
+
+mcpster handles the full OAuth flow: dynamic client registration (`/register`), authorization (`/authorize`), token issuance (`/token`), and bearer token verification on the MCP endpoint. All dynamically registered clients are treated as public PKCE clients — no pre-shared secrets required.
+
+For persistence across restarts, point `clientsFile` at a file on a mounted volume:
+
+```typescript
+http: {
+  auth: true,
+  baseUrl: 'https://my-server.example.com',
+  clientsFile: '/data/oauth-clients.json',
+}
+```
+
 ## Configuration
 
 | Option | Default | Description |
@@ -88,6 +119,9 @@ claude mcp add --transport http my-server http://localhost:3000/mcp
 | `transport` | `'stdio'` | Transport to use: `'stdio'` or `'http'` |
 | `http.port` | `3000` | Port to listen on (HTTP transport only) |
 | `http.path` | `'/mcp'` | Request path to handle (HTTP transport only) |
+| `http.auth` | `false` | Enable OAuth 2.1 PKCE protection on the MCP endpoint |
+| `http.baseUrl` | `http://localhost:<port>` | Public base URL — used for OAuth metadata and token endpoints |
+| `http.clientsFile` | *(in-memory)* | Path to persist registered OAuth clients across restarts |
 
 ## Project Structure
 
@@ -101,7 +135,7 @@ mcpster/
 │   ├── prompt.ts             # definePrompt — prompt template registration
 │   ├── transport/
 │   │   ├── stdio.ts          # stdio transport adapter
-│   │   └── http.ts           # HTTP/SSE transport adapter
+│   │   └── http.ts           # Streamable HTTP transport adapter
 │   ├── deploy/
 │   │   ├── types.ts          # Shared DeployConfig, DeployResult, DeployAdapter types
 │   │   ├── railway.ts        # Railway adapter (generateManifest, deploy)
@@ -124,7 +158,7 @@ mcpster/
 
 ## Deploy (v3)
 
-mcpster ships a deploy kit that pushes your HTTP/SSE server to Railway, Fly.io, or Cloudflare Workers with a single command. The HTTP/SSE transport must already be configured on your server before deploying — the deploy adapters wrap the existing `transport: 'http'` path.
+mcpster ships a deploy kit that pushes your Streamable HTTP server to Railway, Fly.io, or Cloudflare Workers with a single command. The Streamable HTTP transport must already be configured on your server before deploying — the deploy adapters wrap the existing `transport: 'http'` path.
 
 ### Prerequisites
 
@@ -168,7 +202,7 @@ All options:
 createServer({ name: 'my-server', version: '1.0.0' }).start()
 ```
 
-**Stage 2 — Local HTTP/SSE** (same server, different transport)
+**Stage 2 — Local Streamable HTTP** (same server, different transport)
 
 ```typescript
 createServer({
