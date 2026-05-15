@@ -98,13 +98,13 @@ The resolved answer for "which Vercel projects?" says "do not create the token u
 The known-good list in the Phase 8 task body (lines ~315–326) still omits `htllm`. The resolved answer says to add it, but the BOT section wasn't edited. When BOT executes it will read the task body, not COMMENTS, and will flag htllm as unknown. Either the Phase 8 task body must be updated before execution, or BOT needs an explicit instruction to merge the COMMENTS allowlist into its check.
 
 - [ ] Update Phase 8 known-good list in the BOT task body to include `htllm`?
-  > _answer:_
+  > follow your feeling
 
 **Phase 4 has no branch name**
 Phases 3, 6, and 7 each declare an explicit branch name. Phase 4 does not. BOT will invent one, risking a collision with other open branches (e.g., if it defaults to `chore/sha-pin` but a Phase 3 branch for the same repo is active). Declare the branch name here.
 
 - [ ] Confirm branch name for Phase 4 SHA-pinning (suggestion: `chore/pin-actions`)?
-  > _answer:_
+  > follow your feeling
 
 **Phase 9 report commit destination bypasses PR workflow**
 `docs/security-hardening-report.md` is committed "to mcpster" with no branch specified, implying a direct commit to `master`. This skips CI and creates a lone commit outside any of the PR branches. Either add it to an existing branch (e.g., Phase 7's `chore/security-policy`) or create a dedicated `chore/security-report` branch with a PR.
@@ -114,6 +114,37 @@ The three `[ ]` items under "Before passing to BOT, confirm" are unchecked and u
 
 **No `depends:` headers declared**
 Phases 3, 4, 6, and 7 will all create branches in all 6 repos concurrently if run in parallel. No inter-phase dependencies are declared, so the flowdeck orchestrator has no signal to serialize them. Phase 1 → Phase 8 dependency (noted in first-pass comments) and Phase 2 human gate → Phase 3 are the critical ones. Add `depends:` headers or a note that this card must be played `--serial`.
+
+---
+
+#### COMMENTS (flash — 2026-05-15, third pass)
+
+**"Follow your feeling" answers haven't updated the BOT task body**
+The two remaining open items have been answered with "follow your feeling" — delegating the decision to BOT — but BOT reads task bodies, not COMMENTS. Phase 8 will still flag `htllm` as unknown (known-good list in lines ~346–358 hasn't changed), and Phase 4 will invent a branch name. The resolved intent: add `htllm` to the Phase 8 known-good list; use `chore/pin-actions` as the Phase 4 branch. Neither is in the task body yet. BOT needs either updated task bodies before execution or an explicit preamble instruction to treat COMMENTS as overrides.
+
+**Phase 1 `find .` only scans mcpster**
+Steps 1a and 1b use bare `find .` — scoped to the current working directory. They will silently skip `.claude/settings.json` and `.vscode/tasks.json` in the other 5 repos. Step 1c already uses the correct `for repo in mcpster sitegrow mdblu xtage skillms flowdeck` pattern. Steps 1a and 1b need the same treatment before Phase 8's audit is meaningful.
+
+**`blockExoticSubdeps`: no concrete runtime instruction for BOT**
+Second COMMENTS identified the key as invalid and named the correct substitute, but BOT still has no explicit instruction in the task body. It will copy `"blockExoticSubdeps": true` verbatim into every `renovate.json`. BOT needs a concrete directive: at Phase 3 execution time, validate the JSON against the Renovate schema and replace `"blockExoticSubdeps": true` with `"allowedRegistries": ["https://registry.npmjs.org"]`.
+
+**Phase 1 missing `vercel projects list`**
+The Vercel token scoping answer says "BOT must run `vercel projects list` first — do not create the token until HUMAN confirms." That step is absent from Phase 1. HUMAN will arrive at Phase 2's rotation checklist with no project list and no instruction to obtain one. The `vercel projects list` call should be added to Phase 1 output alongside the other audit findings.
+
+- [ ] Update Phase 8 known-good list in the BOT task body to include `htllm`?
+  > _answer: yes — tools: deploy_menus, deploy_pages, deploy_payload, deploy_theme_mods, get_website, install_to_wp_
+
+- [ ] Confirm branch name for Phase 4 SHA-pinning?
+  > _answer: `chore/pin-actions`_
+
+- [ ] Phase 9 report destination: direct commit to `master`, piggyback on `chore/security-policy`, or a dedicated `chore/security-report` PR?
+  > _answer:_
+
+- [ ] Add Phase 0 pre-flight (`op whoami`, `gh auth status`, `vercel whoami`) that must exit 0 before any writes proceed?
+  > _answer:_
+
+- [ ] Card serialization: add `depends:` headers between phases, or note the card must be played `--serial`?
+  > _answer:_
 
 ---
 
