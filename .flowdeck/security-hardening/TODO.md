@@ -55,26 +55,65 @@ Phases 3, 4, and 7 each open a separate PR per applicable repo — potentially ~
 
 **Open questions for HUMAN before BOT starts:**
 
-- [ ] Are all 6 repos siblings on disk (i.e. `../sitegrow`, `../mdblu`, etc. resolve correctly from mcpster)?
+- [x] Are all 6 repos siblings on disk?
+  > Yes — assume `../sitegrow`, `../mdblu`, etc. resolve from mcpster.
+  > If a path fails, log the error and continue with remaining repos.
+
+- [x] Is the Renovate GitHub App installed on `@ruco-ai`?
+  > Assume not. BOT commits `renovate.json` to all repos but adds a
+  > completion report note: app must be installed at github.com/apps/renovate.
+
+- [x] Exact GitHub secret name for mdblu token?
+  > Unknown — BOT must scan `.github/workflows/*.yml` in mdblu for all
+  > `secrets.*` references and report names found before taking any action.
+
+- [x] 1Password vault name and item paths?
+  > Use placeholder paths in `.env.template`:
+  > `op://YOUR_VAULT/item/field` with a comment: "run `op vault list`
+  > to find your vault name, then update these paths."
+
+- [x] Is `htllm` a known-good MCP server?
+  > Yes — add to Phase 8 allowlist alongside the other known-good servers.
+
+- [x] Should BOT verify GitHub Actions SHAs via `gh api`?
+  > Yes — verify each SHA at runtime before committing. Requires `gh` CLI
+  > authenticated. If `gh` is not available, log a warning and skip pinning
+  > for that workflow rather than committing an unverified SHA.
+
+- [x] Which Vercel projects should the new token be scoped to?
+  > BOT must run `vercel projects list` first and report the results.
+  > Do not create the token until HUMAN confirms the project list.
+
+---
+
+#### COMMENTS (flash — 2026-05-15, post-answers)
+
+**`blockExoticSubdeps` still in the task body**
+The Phase 3 JSON blocks still contain `"blockExoticSubdeps": true`. The resolved answers didn't fix the task body, only noted the issue in comments. BOT will copy the invalid key verbatim into `renovate.json`. Before executing Phase 3, replace with the correct Renovate pattern: add `"allowedRegistries": ["https://registry.npmjs.org"]` to block non-registry sources, and `"allowCustomCriteriaMatching": false` is not applicable here — the right lever is constraining `resolvedAs` sources via a `packageRules` `matchSourceUrls` deny-list or simply `"registryUrls"` at the preset level. BOT should validate against the Renovate JSON schema at runtime.
+
+**Phase 2 Vercel pause has no enforcement mechanism**
+The resolved answer for "which Vercel projects?" says "do not create the token until HUMAN confirms." But Phase 2 is already HUMAN-gated (the whole phase is a printed checklist). The `vercel projects list` step belongs in Phase 1 (audit, safe to run) so the list is available before HUMAN starts Phase 2. Right now it isn't there — BOT has no instructions to run it, and HUMAN has no list to act on before Phase 2 begins.
+
+**Phase 8 task body not updated with `htllm`**
+The known-good list in the Phase 8 task body (lines ~315–326) still omits `htllm`. The resolved answer says to add it, but the BOT section wasn't edited. When BOT executes it will read the task body, not COMMENTS, and will flag htllm as unknown. Either the Phase 8 task body must be updated before execution, or BOT needs an explicit instruction to merge the COMMENTS allowlist into its check.
+
+- [ ] Update Phase 8 known-good list in the BOT task body to include `htllm`?
   > _answer:_
 
-- [ ] Is the Renovate GitHub App already installed on the `@ruco-ai` org? If not, who will install it?
+**Phase 4 has no branch name**
+Phases 3, 6, and 7 each declare an explicit branch name. Phase 4 does not. BOT will invent one, risking a collision with other open branches (e.g., if it defaults to `chore/sha-pin` but a Phase 3 branch for the same repo is active). Declare the branch name here.
+
+- [ ] Confirm branch name for Phase 4 SHA-pinning (suggestion: `chore/pin-actions`)?
   > _answer:_
 
-- [ ] What is the exact GitHub secret name used for the mdblu PR automation token (`GITHUB_TOKEN_MDBLU`? something else)?
-  > _answer:_
+**Phase 9 report commit destination bypasses PR workflow**
+`docs/security-hardening-report.md` is committed "to mcpster" with no branch specified, implying a direct commit to `master`. This skips CI and creates a lone commit outside any of the PR branches. Either add it to an existing branch (e.g., Phase 7's `chore/security-policy`) or create a dedicated `chore/security-report` branch with a PR.
 
-- [ ] What are the actual 1Password vault name and item paths for the secrets in `.env.template` (is the vault really named "Personal")?
-  > _answer:_
+**Pre-flight checklist is not a BOT gate**
+The three `[ ]` items under "Before passing to BOT, confirm" are unchecked and unenforceable — BOT will proceed regardless. If `op` is not authenticated or `gh` is not available, Phase 6 and Phase 4 will fail mid-execution leaving repos in a partial state. Consider adding a Phase 0 pre-flight check script that verifies `op whoami`, `gh auth status`, and `vercel whoami` before any writes happen.
 
-- [ ] Is `htllm` a known-good MCP server that should be added to the Phase 8 allowlist?
-  > _answer:_
-
-- [ ] Should BOT verify the GitHub Actions SHAs at runtime via `gh api`, or trust the values in the card as-is?
-  > _answer:_
-
-- [ ] Confirm which Vercel projects the new deploy token should be scoped to.
-  > _answer:_
+**No `depends:` headers declared**
+Phases 3, 4, 6, and 7 will all create branches in all 6 repos concurrently if run in parallel. No inter-phase dependencies are declared, so the flowdeck orchestrator has no signal to serialize them. Phase 1 → Phase 8 dependency (noted in first-pass comments) and Phase 2 human gate → Phase 3 are the critical ones. Add `depends:` headers or a note that this card must be played `--serial`.
 
 ---
 
