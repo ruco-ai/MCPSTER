@@ -16,3 +16,8 @@ node_modules/
 
 # pack artifacts
 *.tgz
+
+# secrets
+.env
+.env.local
+.env.production
