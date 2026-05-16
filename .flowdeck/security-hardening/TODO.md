@@ -31,12 +31,14 @@
 - [x] `jq` dependency: removed from pre-flight
 
 **Before passing to BOT, confirm:**
-- [ ] 1Password CLI installed and `op` authenticated locally (`op whoami` exits 0)
+- [x] 1Password CLI installed and `op` authenticated locally (`op whoami` exits 0)
 
-> This is the only remaining gate. Check this box, then pass to BOT.
+> ✅ **UNBLOCKED (2026-05-16, attempt 3):** `op whoami` → alex@ruco.pt. All 3 tools pass. Proceeding.
 
-> ⛔ **BLOCKED (2026-05-16, attempt 2):** BOT re-ran Phase 0 — `op whoami` still returns non-zero. `gh` ✓ (alexruco), `vercel` ✓ (alexruco), all 6 repos reachable. Only `op` is failing.
-> Fix: run `op signin` (or `op signin --account <shorthand>`) in your terminal. Verify with `op whoami` before passing back to BOT. All other pre-requisites are satisfied.
+**Phase 2 — confirm secret rotation complete before BOT continues to Phase 3:**
+- [ ] npm publish token rotated and GitHub secret `NPM_TOKEN` updated in mcpster
+- [ ] GitHub token (used by `flowdev` MCP + mdblu PR automation) regenerated — update `GITHUB_TOKEN` in `~/.claude/settings.json` env block AND flowdev MCP env block (⚠️ token currently hardcoded in plaintext — see Phase 1a finding)
+- [ ] Vercel deploy token rotated — scope to: `myhcv-proposta`, `code4kids-rubm`
 
 ---
 
@@ -110,6 +112,8 @@ echo "=== Pre-flight complete ==="
 ```
 
 **BOT: any FAIL → stop. WARN → log and continue.**
+
+> ✅ **Phase 0 complete (2026-05-16):** op ✓ (alex@ruco.pt), gh ✓ (alexruco), vercel ✓ (alexruco). All 6 repos reachable.
 
 ---
 
@@ -187,6 +191,23 @@ echo "BOT: this list is required before HUMAN can complete Phase 2. Print it cle
 ```
 
 **BOT: print all findings before pausing for Phase 2. The Vercel project list (1f) must appear in the output.**
+
+> ✅ **Phase 1 complete (2026-05-16). Findings:**
+>
+> **1a — .claude/settings.json:**
+> - ⚠️ `GITHUB_TOKEN` hardcoded in plaintext in `~/.claude/settings.json` `env` block AND in `flowdev` MCP server `env` block. Must rotate and migrate to `op run`.
+> - Global MCP servers: `flowdev` (FLAG — not on known-good list), `google-search-console` (FLAG), `orgnix-schema` (FLAG), `orgnix-ruco` (FLAG), `xtage` (KNOWN-GOOD)
+> - Per-project: all repos have `htllm` (KNOWN-GOOD, points to sitegrow/module-d). `mdblu`, `skillms`, `flowdeck` also have `flowdev` (FLAG). `flowdeck` also has `flowdeck` MCP server (FLAG).
+>
+> **1b — .vscode/tasks.json:** None found in any repo — clean.
+>
+> **1c — Exotic subdeps:** All repos with package-lock.json are clean. `skillms` has no package-lock.json.
+>
+> **1d — npm publish history:** `@ruco-ai/mcpster` — single version 0.2.5 published 2026-04-17. No anomalies.
+>
+> **1e — NPM_TOKEN in CI:** No `.github/workflows` directories exist in any of the 6 repos. No NPM_TOKEN exposure in CI. Phase 2 npm token rotation limited to mcpster only.
+>
+> **1f — Vercel projects:** `myhcv-proposta` (https://myhcv-proposta.vercel.app, 5d ago), `code4kids-rubm` (https://code4kids.vercel.app, 137d ago)
 
 ---
 
